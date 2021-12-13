@@ -1,9 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
-mod color;
-mod point;
-
 #[derive(Clone, Copy)]
 pub struct Vec3 {
     e: [f64; 3],
