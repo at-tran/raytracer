@@ -7,17 +7,19 @@ mod color;
 mod point;
 mod ray;
 mod vec3;
+mod hit;
+mod sphere;
 
 fn hit_sphere(r: &Ray, center: &Point, radius: f64) -> f64 {
     let oc = *r.origin() - *center;
-    let a = r.direction().dot(r.direction());
-    let b = 2.0 * r.direction().dot(&oc);
-    let c = oc.dot(&oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
+    let a = r.direction().length_squared();
+    let half_b = r.direction().dot(&oc);
+    let c = oc.length_squared() - radius * radius;
+    let discriminant = half_b * half_b - a * c;
     if discriminant < 0.0 {
         -1.0
     } else {
-        (-b - f64::sqrt(discriminant)) / (2.0 * a)
+        (-half_b - f64::sqrt(discriminant)) / a
     }
 }
 
