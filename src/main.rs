@@ -6,6 +6,7 @@ use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 use rand::Rng;
+use rayon::prelude::*;
 
 mod camera;
 mod color;
@@ -41,15 +42,15 @@ fn main() {
     for j in (0..image_height).rev() {
         println!("Scanlines remaining: {}", j + 1);
         for i in 0..image_width {
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-            for _ in 0..samples_per_pixel {
+            let pixel_color_sum: Color = (0..samples_per_pixel).into_par_iter().map(|_| {
                 let u = (i as f64 + rand::thread_rng().gen::<f64>()) / (image_width as f64 - 1.0);
                 let v = (j as f64 + rand::thread_rng().gen::<f64>()) / (image_height as f64 - 1.0);
 
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, &world);
-            }
-            pixel_color = Color(pixel_color.0 / samples_per_pixel as f64);
+                ray_color(&r, &world)
+            }).sum();
+
+            let pixel_color = Color(pixel_color_sum.0 / samples_per_pixel as f64);
 
             img_buf.put_pixel(
                 i,
