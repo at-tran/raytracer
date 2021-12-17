@@ -27,11 +27,11 @@ impl Hit for Sphere {
         let root =
             get_first_in_range([(-half_b - sqrtd) / a, (-half_b + sqrtd) / a], t_min, t_max)?;
 
-        Some(HitRecord {
-            p: r.at(root),
-            normal: (r.at(root) - self.center) / self.radius,
-            t: root,
-        })
+        Some(HitRecord::new(
+            r,
+            (r.at(root) - self.center) / self.radius,
+            root,
+        ))
     }
 }
 
