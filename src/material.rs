@@ -2,6 +2,7 @@ use crate::color::Color;
 use crate::hit::HitRecord;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
+use rand::Rng;
 
 pub trait Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)>;
@@ -58,6 +59,8 @@ impl Material for Metal {
     }
 }
 
+
+#[derive(Clone)]
 pub struct Dielectric {
     ir: f64,
 }
@@ -65,6 +68,13 @@ pub struct Dielectric {
 impl Dielectric {
     pub fn new(ir: f64) -> Dielectric {
         Dielectric { ir }
+    }
+
+    fn reflectance(cosine: f64, refraction_ratio: f64) -> f64 {
+        // Use Schlick's approximation for reflectance.
+        let mut r0 = (1.0 - refraction_ratio) / (1.0 + refraction_ratio);
+        r0 = r0 * r0;
+        r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
     }
 }
 
@@ -76,7 +86,17 @@ impl Material for Dielectric {
             self.ir
         };
         let unit_direction = r_in.direction().unit_vector();
-        let refracted = unit_direction.refract(&rec.normal, refraction_ratio);
-        Some((Ray::new(rec.p, refracted), Color::new(1.0, 1.0, 1.0)))
+        let cos_theta = f64::min(-unit_direction.dot(&rec.normal), 1.0);
+        let sin_theta = f64::sqrt(1.0 - cos_theta * cos_theta);
+
+        let direction = if refraction_ratio * sin_theta > 1.0
+            || Self::reflectance(cos_theta, refraction_ratio) > rand::thread_rng().gen()
+        {
+            unit_direction.reflect(&rec.normal)
+        } else {
+            unit_direction.refract(&rec.normal, refraction_ratio)
+        };
+
+        Some((Ray::new(rec.p, direction), Color::new(1.0, 1.0, 1.0)))
     }
 }
