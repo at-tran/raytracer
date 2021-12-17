@@ -16,9 +16,14 @@ mod ray;
 mod sphere;
 mod vec3;
 
-fn ray_color<T: Hit>(r: &Ray, world: &T) -> Color {
-    if let Some(rec) = world.hit(r, 0.0, f64::INFINITY) {
-        return 0.5 * (Color(rec.normal) + Color::new(1.0, 1.0, 1.0));
+fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
+    if depth <= 0 {
+        return Color::new(0.0, 0.0, 0.0);
+    }
+
+    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
+        let target = Sphere::new(rec.p + rec.normal, 1.0).random_on_surface();
+        return 0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1);
     }
 
     let unit_direction = r.direction().unit_vector();
@@ -31,6 +36,7 @@ fn main() {
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel = 100;
+    let max_depth = 50;
 
     let mut world = HitList::new();
     world.push(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5));
@@ -42,13 +48,18 @@ fn main() {
     for j in (0..image_height).rev() {
         println!("Scanlines remaining: {}", j + 1);
         for i in 0..image_width {
-            let pixel_color_sum: Color = (0..samples_per_pixel).into_par_iter().map(|_| {
-                let u = (i as f64 + rand::thread_rng().gen::<f64>()) / (image_width as f64 - 1.0);
-                let v = (j as f64 + rand::thread_rng().gen::<f64>()) / (image_height as f64 - 1.0);
+            let pixel_color_sum: Color = (0..samples_per_pixel)
+                .into_par_iter()
+                .map(|_| {
+                    let u =
+                        (i as f64 + rand::thread_rng().gen::<f64>()) / (image_width as f64 - 1.0);
+                    let v =
+                        (j as f64 + rand::thread_rng().gen::<f64>()) / (image_height as f64 - 1.0);
 
-                let r = cam.get_ray(u, v);
-                ray_color(&r, &world)
-            }).sum();
+                    let r = cam.get_ray(u, v);
+                    ray_color(&r, &world, max_depth)
+                })
+                .sum();
 
             let pixel_color = Color(pixel_color_sum.0 / samples_per_pixel as f64);
 

@@ -1,5 +1,4 @@
 use crate::vec3::Vec3;
-use std::fmt::{Display, Formatter};
 use std::iter::Sum;
 use std::ops::{Add, AddAssign, Mul};
 
@@ -13,9 +12,9 @@ impl Color {
 
     pub fn to_rgb_array(self) -> [u8; 3] {
         [
-            (256.0 * f64::clamp(self.0[0], 0.0, 0.999)) as u8,
-            (256.0 * f64::clamp(self.0[1], 0.0, 0.999)) as u8,
-            (256.0 * f64::clamp(self.0[2], 0.0, 0.999)) as u8,
+            (256.0 * f64::clamp(f64::sqrt(self.0[0]), 0.0, 0.999)) as u8,
+            (256.0 * f64::clamp(f64::sqrt(self.0[1]), 0.0, 0.999)) as u8,
+            (256.0 * f64::clamp(f64::sqrt(self.0[2]), 0.0, 0.999)) as u8,
         ]
     }
 }

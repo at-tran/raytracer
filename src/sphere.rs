@@ -1,6 +1,8 @@
 use crate::hit::{Hit, HitRecord};
 use crate::point::Point;
 use crate::ray::Ray;
+use crate::vec3::Vec3;
+use rand::Rng;
 
 pub struct Sphere {
     center: Point,
@@ -10,6 +12,23 @@ pub struct Sphere {
 impl Sphere {
     pub fn new(center: Point, radius: f64) -> Sphere {
         Sphere { center, radius }
+    }
+    pub fn random_inside(&self) -> Point {
+        loop {
+            let mut rng = rand::thread_rng();
+            let offset = Vec3::new(
+                rng.gen_range(-self.radius..self.radius),
+                rng.gen_range(-self.radius..self.radius),
+                rng.gen_range(-self.radius..self.radius),
+            );
+            if offset.length() <= self.radius {
+                return self.center + offset;
+            }
+        }
+    }
+
+    pub fn random_on_surface(&self) -> Point {
+        self.center + (self.random_inside() - self.center).unit_vector()
     }
 }
 
