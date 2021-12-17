@@ -43,6 +43,14 @@ impl Vec3 {
     pub fn reflect(&self, normal: &Self) -> Self {
         *self - *normal * self.dot(normal) * 2.0
     }
+
+    pub fn refract(&self, normal: &Self, etai_over_etat: f64) -> Self {
+        let cos_theta = f64::min(-self.dot(normal), 1.0);
+        let r_out_perpendicular = etai_over_etat * (*self + *normal * cos_theta);
+        let r_out_parallel =
+            -f64::sqrt(f64::abs(1.0 - r_out_perpendicular.length_squared())) * *normal;
+        r_out_perpendicular + r_out_parallel
+    }
 }
 
 impl Neg for Vec3 {

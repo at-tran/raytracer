@@ -36,7 +36,10 @@ pub struct Metal {
 
 impl Metal {
     pub fn new(albedo: Color, fuzz: f64) -> Self {
-        Self { albedo, fuzz: fuzz.min(1.0) }
+        Self {
+            albedo,
+            fuzz: fuzz.min(1.0),
+        }
     }
 }
 
@@ -52,5 +55,28 @@ impl Material for Metal {
         } else {
             None
         }
+    }
+}
+
+pub struct Dielectric {
+    ir: f64,
+}
+
+impl Dielectric {
+    pub fn new(ir: f64) -> Dielectric {
+        Dielectric { ir }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Color)> {
+        let refraction_ratio = if rec.front_face {
+            1.0 / self.ir
+        } else {
+            self.ir
+        };
+        let unit_direction = r_in.direction().unit_vector();
+        let refracted = unit_direction.refract(&rec.normal, refraction_ratio);
+        Some((Ray::new(rec.p, refracted), Color::new(1.0, 1.0, 1.0)))
     }
 }
