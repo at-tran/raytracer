@@ -2,7 +2,7 @@ use crate::hit::{Hit, HitRecord};
 use crate::point::Point;
 use crate::ray::Ray;
 
-struct Sphere {
+pub struct Sphere {
     center: Point,
     radius: f64,
 }
