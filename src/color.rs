@@ -1,7 +1,8 @@
 use crate::vec3::Vec3;
 use std::fmt::{Display, Formatter};
-use std::ops::{Add, Mul};
+use std::ops::{Add, AddAssign, Mul};
 
+#[derive(Copy, Clone)]
 pub struct Color(pub Vec3);
 
 impl Color {
@@ -11,9 +12,9 @@ impl Color {
 
     pub fn to_rgb_array(self) -> [u8; 3] {
         [
-            (255.999 * self.0[0]) as u8,
-            (255.999 * self.0[1]) as u8,
-            (255.999 * self.0[2]) as u8,
+            (256.0 * f64::clamp(self.0[0], 0.0, 0.999)) as u8,
+            (256.0 * f64::clamp(self.0[1], 0.0, 0.999)) as u8,
+            (256.0 * f64::clamp(self.0[2], 0.0, 0.999)) as u8,
         ]
     }
 }
@@ -31,5 +32,11 @@ impl Add for Color {
 
     fn add(self, rhs: Self) -> Self::Output {
         Color(self.0 + rhs.0)
+    }
+}
+
+impl AddAssign for Color {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
     }
 }

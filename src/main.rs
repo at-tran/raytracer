@@ -1,10 +1,13 @@
+use crate::camera::Camera;
 use crate::color::Color;
 use crate::hit::{Hit, HitList};
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
+use rand::Rng;
 
+mod camera;
 mod color;
 mod hit;
 mod point;
@@ -26,35 +29,33 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
+    let samples_per_pixel = 100;
 
     let mut world = HitList::new();
     world.push(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5));
     world.push(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0));
 
-    let viewport_height = 2.0;
-    let viewport_width = viewport_height as f64 * aspect_ratio;
-    let focal_length = 1.0;
-
-    let origin = Point::new(0.0, 0.0, 0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+    let cam = Camera::new();
 
     let mut img_buf = image::ImageBuffer::new(image_width, image_height);
     for j in (0..image_height).rev() {
         println!("Scanlines remaining: {}", j + 1);
         for i in 0..image_width {
-            let u = i as f64 / (image_width as f64 - 1.0);
-            let v = j as f64 / (image_height as f64 - 1.0);
+            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+            for _ in 0..samples_per_pixel {
+                let u = (i as f64 + rand::thread_rng().gen::<f64>()) / (image_width as f64 - 1.0);
+                let v = (j as f64 + rand::thread_rng().gen::<f64>()) / (image_height as f64 - 1.0);
 
-            let r = Ray::new(
-                origin,
-                lower_left_corner - origin + u * horizontal + v * vertical,
+                let r = cam.get_ray(u, v);
+                pixel_color += ray_color(&r, &world);
+            }
+            pixel_color = Color(pixel_color.0 / samples_per_pixel as f64);
+
+            img_buf.put_pixel(
+                i,
+                image_height - j - 1,
+                image::Rgb(pixel_color.to_rgb_array()),
             );
-            let c = ray_color(&r, &world);
-
-            img_buf.put_pixel(i, image_height - j - 1, image::Rgb(c.to_rgb_array()));
         }
     }
     img_buf.save("image.png").unwrap();
