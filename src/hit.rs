@@ -1,3 +1,4 @@
+use crate::material::Material;
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
@@ -6,15 +7,21 @@ pub trait Hit {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub p: Point,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub mat: &'a (dyn Material + Sync),
 }
 
-impl HitRecord {
-    pub fn new(r: &Ray, outward_normal: Vec3, t: f64) -> HitRecord {
+impl HitRecord<'_> {
+    pub fn new<'a>(
+        r: &Ray,
+        outward_normal: Vec3,
+        t: f64,
+        mat: &'a (dyn Material + Sync),
+    ) -> HitRecord<'a> {
         let p = r.at(t);
         let front_face = r.direction().dot(&outward_normal) < 0.0;
         HitRecord {
@@ -26,23 +33,24 @@ impl HitRecord {
             },
             t,
             front_face,
+            mat,
         }
     }
 }
 
-pub struct HitList<T: Hit> {
-    pub objects: Vec<T>,
+pub struct HitList {
+    pub objects: Vec<Box<dyn Hit + Sync>>,
 }
 
-impl<T: Hit> HitList<T> {
-    pub fn new() -> HitList<T> {
+impl HitList {
+    pub fn new() -> HitList {
         HitList {
             objects: Vec::new(),
         }
     }
 
-    pub fn push(&mut self, object: T) {
-        self.objects.push(object);
+    pub fn push(&mut self, object: impl Hit + Sync + 'static) {
+        self.objects.push(Box::new(object));
     }
 
     pub fn clear(&mut self) {
@@ -50,7 +58,7 @@ impl<T: Hit> HitList<T> {
     }
 }
 
-impl<T: Hit> Hit for HitList<T> {
+impl Hit for HitList {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut res = None;
         let mut closest = t_max;

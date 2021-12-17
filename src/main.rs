@@ -1,16 +1,17 @@
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::hit::{Hit, HitList};
+use crate::material::{Lambertian, Metal};
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
-use crate::vec3::Vec3;
 use rand::Rng;
 use rayon::prelude::*;
 
 mod camera;
 mod color;
 mod hit;
+mod material;
 mod point;
 mod ray;
 mod sphere;
@@ -22,8 +23,10 @@ fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
     }
 
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        let target = Sphere::new(rec.p + rec.normal, 1.0).random_on_surface();
-        return 0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1);
+        if let Some((scattered, attenuation)) = rec.mat.scatter(r, &rec) {
+            return Color(attenuation.0 * ray_color(&scattered, world, depth - 1).0);
+        }
+        return Color::new(0.0, 0.0, 0.0);
     }
 
     let unit_direction = r.direction().unit_vector();
@@ -39,8 +42,24 @@ fn main() {
     let max_depth = 50;
 
     let mut world = HitList::new();
-    world.push(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5));
-    world.push(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0));
+
+    let material_ground = Lambertian::new(Color::new(0.8, 0.8, 0.0));
+    let material_center = Lambertian::new(Color::new(0.7, 0.3, 0.3));
+    let material_left = Metal::new(Color::new(0.8, 0.8, 0.8));
+    let material_right = Metal::new(Color::new(0.8, 0.6, 0.2));
+
+    world.push(Sphere::new(
+        Point::new(0.0, -100.5, -1.0),
+        100.0,
+        material_ground,
+    ));
+    world.push(Sphere::new(
+        Point::new(0.0, 0.0, -1.0),
+        0.5,
+        material_center,
+    ));
+    world.push(Sphere::new(Point::new(-1.0, 0.0, -1.0), 0.5, material_left));
+    world.push(Sphere::new(Point::new(1.0, 0.0, -1.0), 0.5, material_right));
 
     let cam = Camera::new();
 

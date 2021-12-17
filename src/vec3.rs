@@ -31,8 +31,17 @@ impl Vec3 {
         )
     }
 
-    pub fn unit_vector(&self) -> Vec3 {
+    pub fn unit_vector(&self) -> Self {
         *self / self.length()
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        f64::abs(self.e[0]) < s && f64::abs(self.e[1]) < s && f64::abs(self.e[2]) < s
+    }
+
+    pub fn reflect(&self, normal: &Self) -> Self {
+        *self - *normal * self.dot(normal) * 2.0
     }
 }
 
