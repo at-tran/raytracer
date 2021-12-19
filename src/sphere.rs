@@ -3,23 +3,23 @@ use crate::material::Material;
 use crate::point::Point;
 use crate::ray::Ray;
 
-pub struct Sphere<'a> {
+pub struct Sphere {
     center: Point,
     radius: f64,
-    mat: &'a (dyn Material + Sync),
+    mat: Box<dyn Material + Sync>,
 }
 
-impl Sphere<'_> {
-    pub fn new(center: Point, radius: f64, mat: &(impl Material + Sync)) -> Sphere {
+impl Sphere {
+    pub fn new(center: Point, radius: f64, mat: impl Material + Sync + 'static) -> Sphere {
         Sphere {
             center,
             radius,
-            mat,
+            mat: Box::new(mat),
         }
     }
 }
 
-impl Hit for Sphere<'_> {
+impl Hit for Sphere {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = *r.origin() - self.center;
         let a = r.direction().length_squared();
@@ -37,7 +37,7 @@ impl Hit for Sphere<'_> {
             r,
             (r.at(root) - self.center) / self.radius,
             root,
-            self.mat,
+            self.mat.as_ref(),
         ))
     }
 }
