@@ -2,8 +2,6 @@ use crate::hit::{Hit, HitRecord};
 use crate::material::Material;
 use crate::point::Point;
 use crate::ray::Ray;
-use crate::vec3::Vec3;
-use rand::Rng;
 
 pub struct Sphere<'a> {
     center: Point,
@@ -18,24 +16,6 @@ impl Sphere<'_> {
             radius,
             mat,
         }
-    }
-
-    pub fn random_in_unit_sphere() -> Point {
-        loop {
-            let mut rng = rand::thread_rng();
-            let p = Vec3::new(
-                rng.gen_range(-1.0..1.0),
-                rng.gen_range(-1.0..1.0),
-                rng.gen_range(-1.0..1.0),
-            );
-            if p.length() <= 1.0 {
-                return Point(p);
-            }
-        }
-    }
-
-    pub fn random_unit_vector() -> Vec3 {
-        Self::random_in_unit_sphere().0.unit_vector()
     }
 }
 

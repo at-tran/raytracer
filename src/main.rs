@@ -8,7 +8,6 @@ use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 use rand::Rng;
 use rayon::prelude::*;
-use std::f64::consts::PI;
 
 mod camera;
 mod color;
@@ -76,12 +75,17 @@ fn main() {
         &material_right,
     ));
 
+    let lookfrom = Point::new(3.0, 3.0, 2.0);
+    let lookat = Point::new(0.0, 0.0, -1.0);
+
     let cam = Camera::new(
-        Point::new(-2.0, 2.0, 1.0),
-        Point::new(0.0, 0.0, -1.0),
+        lookfrom,
+        lookat,
         Vec3::new(0.0, 1.0, 0.0),
         20.0,
         aspect_ratio,
+        2.0,
+        (lookfrom - lookat).length(),
     );
 
     let mut img_buf = image::ImageBuffer::new(image_width, image_height);

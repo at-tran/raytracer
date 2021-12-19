@@ -1,3 +1,5 @@
+use crate::point::Point;
+use rand::Rng;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
@@ -50,6 +52,38 @@ impl Vec3 {
         let r_out_parallel =
             -f64::sqrt(f64::abs(1.0 - r_out_perpendicular.length_squared())) * *normal;
         r_out_perpendicular + r_out_parallel
+    }
+
+    pub fn random_in_unit_sphere() -> Point {
+        let mut rng = rand::thread_rng();
+        loop {
+            let p = Vec3::new(
+                rng.gen_range(-1.0..1.0),
+                rng.gen_range(-1.0..1.0),
+                rng.gen_range(-1.0..1.0),
+            );
+            if p.length_squared() < 1.0 {
+                return Point(p);
+            }
+        }
+    }
+
+    pub fn random_unit_vector() -> Vec3 {
+        Self::random_in_unit_sphere().0.unit_vector()
+    }
+
+    pub fn random_in_unit_disk() -> Point {
+        let mut rng = rand::thread_rng();
+        loop {
+            let p = Vec3::new(
+                rng.gen_range(-1.0..1.0),
+                rng.gen_range(-1.0..1.0),
+                0.0,
+            );
+            if p.length_squared() < 1.0 {
+                return Point(p);
+            }
+        }
     }
 }
 

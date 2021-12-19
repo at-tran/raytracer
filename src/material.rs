@@ -1,7 +1,7 @@
 use crate::color::Color;
 use crate::hit::HitRecord;
 use crate::ray::Ray;
-use crate::sphere::Sphere;
+use crate::vec3::Vec3;
 use rand::Rng;
 
 pub trait Material {
@@ -20,7 +20,7 @@ impl Lambertian {
 
 impl Material for Lambertian {
     fn scatter(&self, _: &Ray, rec: &HitRecord) -> Option<(Ray, Color)> {
-        let mut scatter_direction = rec.normal + Sphere::random_unit_vector();
+        let mut scatter_direction = rec.normal + Vec3::random_unit_vector();
 
         if scatter_direction.near_zero() {
             scatter_direction = rec.normal
@@ -49,7 +49,7 @@ impl Material for Metal {
         let reflected = r_in.direction().unit_vector().reflect(&rec.normal);
         let scattered = Ray::new(
             rec.p,
-            reflected + self.fuzz * Sphere::random_in_unit_sphere().0,
+            reflected + self.fuzz * Vec3::random_in_unit_sphere().0,
         );
         if scattered.direction().dot(&rec.normal) > 0.0 {
             Some((scattered, self.albedo))
@@ -58,7 +58,6 @@ impl Material for Metal {
         }
     }
 }
-
 
 pub struct Dielectric {
     ir: f64,
