@@ -60,7 +60,6 @@ impl Material for Metal {
 }
 
 
-#[derive(Clone)]
 pub struct Dielectric {
     ir: f64,
 }

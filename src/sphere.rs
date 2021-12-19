@@ -5,18 +5,18 @@ use crate::ray::Ray;
 use crate::vec3::Vec3;
 use rand::Rng;
 
-pub struct Sphere {
+pub struct Sphere<'a> {
     center: Point,
     radius: f64,
-    mat: Box<dyn Material + Sync>,
+    mat: &'a (dyn Material + Sync),
 }
 
-impl Sphere {
-    pub fn new(center: Point, radius: f64, mat: impl Material + Sync + 'static) -> Sphere {
+impl Sphere<'_> {
+    pub fn new(center: Point, radius: f64, mat: &(impl Material + Sync)) -> Sphere {
         Sphere {
             center,
             radius,
-            mat: Box::new(mat),
+            mat,
         }
     }
 
@@ -39,7 +39,7 @@ impl Sphere {
     }
 }
 
-impl Hit for Sphere {
+impl Hit for Sphere<'_> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = *r.origin() - self.center;
         let a = r.direction().length_squared();
@@ -57,7 +57,7 @@ impl Hit for Sphere {
             r,
             (r.at(root) - self.center) / self.radius,
             root,
-            self.mat.as_ref(),
+            self.mat,
         ))
     }
 }

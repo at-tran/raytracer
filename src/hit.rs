@@ -38,18 +38,18 @@ impl HitRecord<'_> {
     }
 }
 
-pub struct HitList {
-    pub objects: Vec<Box<dyn Hit + Sync>>,
+pub struct HitList<'a> {
+    pub objects: Vec<Box<dyn Hit + Sync + 'a>>,
 }
 
-impl HitList {
-    pub fn new() -> HitList {
+impl<'a> HitList<'a> {
+    pub fn new() -> HitList<'a> {
         HitList {
             objects: Vec::new(),
         }
     }
 
-    pub fn push(&mut self, object: impl Hit + Sync + 'static) {
+    pub fn push(&mut self, object: impl Hit + Sync + 'a) {
         self.objects.push(Box::new(object));
     }
 
@@ -58,7 +58,7 @@ impl HitList {
     }
 }
 
-impl Hit for HitList {
+impl Hit for HitList<'_> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut res = None;
         let mut closest = t_max;
