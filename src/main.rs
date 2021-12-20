@@ -58,13 +58,16 @@ fn random_scene() -> HitList<'static> {
             let choose_mat: f64 = rng.gen();
             if (center - Point::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if choose_mat < 0.8 {
+                    // diffuse
                     let albedo = Color(
                         Color::new(rng.gen(), rng.gen(), rng.gen()).0
                             * Color::new(rng.gen(), rng.gen(), rng.gen()).0,
                     );
                     let material = Lambertian::new(albedo);
-                    world.push(Sphere::new(center, 0.2, material));
+                    let center_end = center + Vec3::new(0.0, rng.gen_range(0.0..0.5), 0.0);
+                    world.push(Sphere::new_moving(center, center_end, 0.0, 1.0, 0.2, material));
                 } else if choose_mat < 0.95 {
+                    // metal
                     let albedo = Color::new(
                         rng.gen_range(0.5..1.0),
                         rng.gen_range(0.5..1.0),
@@ -74,6 +77,7 @@ fn random_scene() -> HitList<'static> {
                     let material = Metal::new(albedo, fuzz);
                     world.push(Sphere::new(center, 0.2, material));
                 } else {
+                    // dielectric
                     let material = Dielectric::new(1.5);
                     world.push(Sphere::new(center, 0.2, material));
                 }
@@ -82,22 +86,34 @@ fn random_scene() -> HitList<'static> {
     }
 
     let material1 = Dielectric::new(1.5);
-    world.push(Sphere::new(Point::new(0.0, 1.0, 0.0), 1.0, material1));
+    world.push(Sphere::new(
+        Point::new(0.0, 1.0, 0.0),
+        1.0,
+        material1,
+    ));
 
     let material2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
-    world.push(Sphere::new(Point::new(-4.0, 1.0, 0.0), 1.0, material2));
+    world.push(Sphere::new(
+        Point::new(-4.0, 1.0, 0.0),
+        1.0,
+        material2,
+    ));
 
     let material3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
-    world.push(Sphere::new(Point::new(4.0, 1.0, 0.0), 1.0, material3));
+    world.push(Sphere::new(
+        Point::new(4.0, 1.0, 0.0),
+        1.0,
+        material3,
+    ));
 
     world
 }
 
 fn main() {
-    let aspect_ratio = 3.0 / 2.0;
-    let image_width = 1200;
+    let aspect_ratio = 16.0 / 9.0;
+    let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 500;
+    let samples_per_pixel = 100;
     let max_depth = 50;
 
     let world = random_scene();
@@ -113,6 +129,8 @@ fn main() {
         aspect_ratio,
         0.1,
         10.0,
+        0.0,
+        1.0,
     );
 
     let mut img_buf = image::ImageBuffer::new(image_width, image_height);

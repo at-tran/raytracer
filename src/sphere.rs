@@ -4,24 +4,58 @@ use crate::point::Point;
 use crate::ray::Ray;
 
 pub struct Sphere {
-    center: Point,
+    center_start: Point,
+    center_end: Point,
+    time_start: f64,
+    time_end: f64,
     radius: f64,
     mat: Box<dyn Material + Sync>,
 }
 
 impl Sphere {
-    pub fn new(center: Point, radius: f64, mat: impl Material + Sync + 'static) -> Sphere {
+    pub fn new(
+        center: Point,
+        radius: f64,
+        mat: impl Material + Sync + 'static,
+    ) -> Sphere {
         Sphere {
-            center,
+            center_start: center,
+            center_end: center,
+            time_start: 0.0,
+            time_end: 1.0,
             radius,
             mat: Box::new(mat),
         }
+    }
+
+    pub fn new_moving(
+        center_start: Point,
+        center_end: Point,
+        time_start: f64,
+        time_end: f64,
+        radius: f64,
+        mat: impl Material + Sync + 'static,
+    ) -> Sphere {
+        Sphere {
+            center_start,
+            center_end,
+            time_start,
+            time_end,
+            radius,
+            mat: Box::new(mat),
+        }
+    }
+
+    pub fn center(&self, time: f64) -> Point {
+        self.center_start
+            + ((time - self.time_start) / (self.time_end - self.time_start))
+                * (self.center_end - self.center_start)
     }
 }
 
 impl Hit for Sphere {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let oc = *r.origin() - self.center;
+        let oc = *r.origin() - self.center(r.time());
         let a = r.direction().length_squared();
         let half_b = r.direction().dot(&oc);
         let c = oc.length_squared() - self.radius * self.radius;
@@ -35,7 +69,7 @@ impl Hit for Sphere {
 
         Some(HitRecord::new(
             r,
-            (r.at(root) - self.center) / self.radius,
+            (r.at(root) - self.center(r.time())) / self.radius,
             root,
             self.mat.as_ref(),
         ))

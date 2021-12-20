@@ -1,6 +1,7 @@
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
+use rand::Rng;
 use std::f64::consts::PI;
 
 pub struct Camera {
@@ -12,6 +13,8 @@ pub struct Camera {
     v: Vec3,
     w: Vec3,
     lens_radius: f64,
+    start_time: f64,
+    end_time: f64,
 }
 
 impl Camera {
@@ -23,6 +26,8 @@ impl Camera {
         aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
+        start_time: f64,
+        end_time: f64,
     ) -> Camera {
         let theta = vfov * PI / 180.0;
         let h = f64::tan(theta / 2.0);
@@ -49,6 +54,8 @@ impl Camera {
             v,
             w,
             lens_radius,
+            start_time,
+            end_time,
         }
     }
 
@@ -59,6 +66,7 @@ impl Camera {
         Ray::new(
             self.origin + offset,
             self.lower_left_corner - self.origin - offset + s * self.horizontal + t * self.vertical,
+            rand::thread_rng().gen_range(self.start_time..self.end_time),
         )
     }
 }
