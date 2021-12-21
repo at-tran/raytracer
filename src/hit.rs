@@ -1,3 +1,4 @@
+use crate::aabb::AABB;
 use crate::material::Material;
 use crate::point::Point;
 use crate::ray::Ray;
@@ -5,6 +6,7 @@ use crate::vec3::Vec3;
 
 pub trait Hit {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+    fn bounding_box(&self, start_time: f64, end_time: f64) -> Option<AABB>;
 }
 
 pub struct HitRecord<'a> {
@@ -38,18 +40,18 @@ impl HitRecord<'_> {
     }
 }
 
-pub struct HitList<'a> {
-    pub objects: Vec<Box<dyn Hit + Sync + 'a>>,
+pub struct HitList {
+    pub objects: Vec<Box<dyn Hit + Sync>>,
 }
 
-impl<'a> HitList<'a> {
-    pub fn new() -> HitList<'a> {
+impl HitList {
+    pub fn new() -> HitList {
         HitList {
             objects: Vec::new(),
         }
     }
 
-    pub fn push(&mut self, object: impl Hit + Sync + 'a) {
+    pub fn push(&mut self, object: impl Hit + Sync + 'static) {
         self.objects.push(Box::new(object));
     }
 
@@ -58,7 +60,7 @@ impl<'a> HitList<'a> {
     }
 }
 
-impl Hit for HitList<'_> {
+impl Hit for HitList {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut res = None;
         let mut closest = t_max;
@@ -67,6 +69,20 @@ impl Hit for HitList<'_> {
             if let Some(rec) = object.hit(r, t_min, closest) {
                 closest = rec.t;
                 res = Some(rec);
+            }
+        }
+
+        res
+    }
+
+    fn bounding_box(&self, start_time: f64, end_time: f64) -> Option<AABB> {
+        let mut res = None;
+
+        for object in self.objects.iter() {
+            let this_box = object.bounding_box(start_time, end_time)?;
+            res = match res {
+                None => Some(this_box),
+                Some(res_box) => Some(AABB::surrounding_box(&res_box, &this_box)),
             }
         }
 

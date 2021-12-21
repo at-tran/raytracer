@@ -1,7 +1,9 @@
+use crate::aabb::AABB;
 use crate::hit::{Hit, HitRecord};
 use crate::material::Material;
 use crate::point::Point;
 use crate::ray::Ray;
+use crate::vec3::Vec3;
 
 pub struct Sphere {
     center_start: Point,
@@ -13,11 +15,7 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(
-        center: Point,
-        radius: f64,
-        mat: impl Material + Sync + 'static,
-    ) -> Sphere {
+    pub fn new(center: Point, radius: f64, mat: impl Material + Sync + 'static) -> Sphere {
         Sphere {
             center_start: center,
             center_end: center,
@@ -73,6 +71,20 @@ impl Hit for Sphere {
             root,
             self.mat.as_ref(),
         ))
+    }
+
+    fn bounding_box(&self, start_time: f64, end_time: f64) -> Option<AABB> {
+        let box0 = AABB::new(
+            self.center(start_time) - Vec3::new(self.radius, self.radius, self.radius),
+            self.center(start_time) + Vec3::new(self.radius, self.radius, self.radius),
+        );
+
+        let box1 = AABB::new(
+            self.center(end_time) - Vec3::new(self.radius, self.radius, self.radius),
+            self.center(end_time) + Vec3::new(self.radius, self.radius, self.radius),
+        );
+
+        Some(AABB::surrounding_box(&box0, &box1))
     }
 }
 

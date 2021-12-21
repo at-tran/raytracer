@@ -9,6 +9,8 @@ use crate::vec3::Vec3;
 use rand::Rng;
 use rayon::prelude::*;
 
+mod aabb;
+mod bvh;
 mod camera;
 mod color;
 mod hit;
@@ -17,7 +19,6 @@ mod point;
 mod ray;
 mod sphere;
 mod vec3;
-mod aabb;
 
 fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
     if depth <= 0 {
@@ -36,7 +37,7 @@ fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
-fn random_scene() -> HitList<'static> {
+fn random_scene() -> HitList {
     let mut world = HitList::new();
 
     let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
@@ -66,7 +67,9 @@ fn random_scene() -> HitList<'static> {
                     );
                     let material = Lambertian::new(albedo);
                     let center_end = center + Vec3::new(0.0, rng.gen_range(0.0..0.5), 0.0);
-                    world.push(Sphere::new_moving(center, center_end, 0.0, 1.0, 0.2, material));
+                    world.push(Sphere::new_moving(
+                        center, center_end, 0.0, 1.0, 0.2, material,
+                    ));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Color::new(
@@ -87,25 +90,13 @@ fn random_scene() -> HitList<'static> {
     }
 
     let material1 = Dielectric::new(1.5);
-    world.push(Sphere::new(
-        Point::new(0.0, 1.0, 0.0),
-        1.0,
-        material1,
-    ));
+    world.push(Sphere::new(Point::new(0.0, 1.0, 0.0), 1.0, material1));
 
     let material2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
-    world.push(Sphere::new(
-        Point::new(-4.0, 1.0, 0.0),
-        1.0,
-        material2,
-    ));
+    world.push(Sphere::new(Point::new(-4.0, 1.0, 0.0), 1.0, material2));
 
     let material3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
-    world.push(Sphere::new(
-        Point::new(4.0, 1.0, 0.0),
-        1.0,
-        material3,
-    ));
+    world.push(Sphere::new(Point::new(4.0, 1.0, 0.0), 1.0, material3));
 
     world
 }
