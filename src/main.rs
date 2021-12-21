@@ -17,6 +17,7 @@ mod point;
 mod ray;
 mod sphere;
 mod vec3;
+mod aabb;
 
 fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
     if depth <= 0 {
