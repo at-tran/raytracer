@@ -40,7 +40,7 @@ fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
-fn random_scene() -> impl Hit {
+fn random_scene() -> BVHNode {
     let mut world = HitList::new();
 
     let ground_material = Lambertian::new(CheckerTexture::from_colors(
@@ -107,6 +107,25 @@ fn random_scene() -> impl Hit {
     BVHNode::new(&world, 0.0, 1.0)
 }
 
+fn two_spheres() -> BVHNode {
+    let mut objects = HitList::new();
+
+    let checker = CheckerTexture::from_colors(Color::new(0.2, 0.3, 0.1), Color::new(0.9, 0.9, 0.9));
+
+    objects.push(Sphere::new(
+        Point::new(0.0, -10.0, 0.0),
+        10.0,
+        Lambertian::new(checker.clone()),
+    ));
+    objects.push(Sphere::new(
+        Point::new(0.0, 10.0, 0.0),
+        10.0,
+        Lambertian::new(checker),
+    ));
+
+    BVHNode::new(&objects, 0.0, 1.0)
+}
+
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
@@ -114,18 +133,35 @@ fn main() {
     let samples_per_pixel = 100;
     let max_depth = 50;
 
-    let world = random_scene();
+    let world;
+    let lookfrom;
+    let lookat;
+    let mut vfov = 40.0;
+    let mut aperture = 0.0;
 
-    let lookfrom = Point::new(13.0, 2.0, 3.0);
-    let lookat = Point::new(0.0, 0.0, 0.0);
+    match 0 {
+        1 => {
+            world = random_scene();
+            lookfrom = Point::new(13.0, 2.0, 3.0);
+            lookat = Point::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+            aperture = 0.1;
+        }
+        2 | _ => {
+            world = two_spheres();
+            lookfrom = Point::new(13.0, 2.0, 3.0);
+            lookat = Point::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+        }
+    }
 
     let cam = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        20.0,
+        vfov,
         aspect_ratio,
-        0.1,
+        aperture,
         10.0,
         0.0,
         1.0,

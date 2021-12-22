@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use crate::color::Color;
 use crate::point::Point;
 
@@ -27,9 +28,10 @@ impl Texture for SolidColor {
     }
 }
 
+#[derive(Clone)]
 pub struct CheckerTexture {
-    odd: Box<dyn Texture + Send + Sync>,
-    even: Box<dyn Texture + Send + Sync>,
+    odd: Arc<dyn Texture + Send + Sync>,
+    even: Arc<dyn Texture + Send + Sync>,
 }
 
 impl CheckerTexture {
@@ -38,15 +40,15 @@ impl CheckerTexture {
         odd: impl Texture + Send + Sync + 'static,
     ) -> Self {
         Self {
-            odd: Box::new(odd),
-            even: Box::new(even),
+            odd: Arc::new(odd),
+            even: Arc::new(even),
         }
     }
 
     pub fn from_colors(even: Color, odd: Color) -> Self {
         Self {
-            odd: Box::new(SolidColor::new(odd)),
-            even: Box::new(SolidColor::new(even)),
+            odd: Arc::new(SolidColor::new(odd)),
+            even: Arc::new(SolidColor::new(even)),
         }
     }
 }
