@@ -14,6 +14,8 @@ pub struct HitRecord<'a> {
     pub p: Point,
     pub normal: Vec3,
     pub t: f64,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
     pub mat: &'a (dyn Material + Sync),
 }
@@ -23,6 +25,8 @@ impl HitRecord<'_> {
         r: &Ray,
         outward_normal: Vec3,
         t: f64,
+        u: f64,
+        v: f64,
         mat: &'a (dyn Material + Sync),
     ) -> HitRecord<'a> {
         let p = r.at(t);
@@ -35,6 +39,8 @@ impl HitRecord<'_> {
                 -outward_normal
             },
             t,
+            u,
+            v,
             front_face,
             mat,
         }

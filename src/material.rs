@@ -1,6 +1,7 @@
 use crate::color::Color;
 use crate::hit::HitRecord;
 use crate::ray::Ray;
+use crate::texture::{SolidColor, Texture};
 use crate::vec3::Vec3;
 use rand::Rng;
 
@@ -9,12 +10,20 @@ pub trait Material {
 }
 
 pub struct Lambertian {
-    albedo: Color,
+    albedo: Box<dyn Texture + Sync + Send>,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Self {
-        Self { albedo }
+    pub fn from_color(color: Color) -> Self {
+        Self {
+            albedo: Box::new(SolidColor::new(color)),
+        }
+    }
+
+    pub fn new(albedo: impl Texture + Sync + Send + 'static) -> Self {
+        Self {
+            albedo: Box::new(albedo),
+        }
     }
 }
 
@@ -26,7 +35,7 @@ impl Material for Lambertian {
             scatter_direction = rec.normal
         }
 
-        Some((Ray::new(rec.p, scatter_direction, r_in.time()), self.albedo))
+        Some((Ray::new(rec.p, scatter_direction, r_in.time()), self.albedo.value(rec.u, rec.v, &rec.p)))
     }
 }
 
@@ -50,7 +59,7 @@ impl Material for Metal {
         let scattered = Ray::new(
             rec.p,
             reflected + self.fuzz * Vec3::random_in_unit_sphere().0,
-            r_in.time()
+            r_in.time(),
         );
         if scattered.direction().dot(&rec.normal) > 0.0 {
             Some((scattered, self.albedo))
@@ -96,6 +105,9 @@ impl Material for Dielectric {
             unit_direction.refract(&rec.normal, refraction_ratio)
         };
 
-        Some((Ray::new(rec.p, direction, r_in.time()), Color::new(1.0, 1.0, 1.0)))
+        Some((
+            Ray::new(rec.p, direction, r_in.time()),
+            Color::new(1.0, 1.0, 1.0),
+        ))
     }
 }

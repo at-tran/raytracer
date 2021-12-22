@@ -1,3 +1,4 @@
+use crate::bvh::BVHNode;
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::hit::{Hit, HitList};
@@ -5,10 +6,10 @@ use crate::material::{Dielectric, Lambertian, Metal};
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
+use crate::texture::CheckerTexture;
 use crate::vec3::Vec3;
 use rand::Rng;
 use rayon::prelude::*;
-use crate::bvh::BVHNode;
 
 mod aabb;
 mod bvh;
@@ -19,6 +20,7 @@ mod material;
 mod point;
 mod ray;
 mod sphere;
+mod texture;
 mod vec3;
 
 fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
@@ -41,7 +43,10 @@ fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
 fn random_scene() -> impl Hit {
     let mut world = HitList::new();
 
-    let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
+    let ground_material = Lambertian::new(CheckerTexture::from_colors(
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
     world.push(Sphere::new(
         Point::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -66,7 +71,7 @@ fn random_scene() -> impl Hit {
                         Color::new(rng.gen(), rng.gen(), rng.gen()).0
                             * Color::new(rng.gen(), rng.gen(), rng.gen()).0,
                     );
-                    let material = Lambertian::new(albedo);
+                    let material = Lambertian::from_color(albedo);
                     let center_end = center + Vec3::new(0.0, rng.gen_range(0.0..0.5), 0.0);
                     world.push(Sphere::new_moving(
                         center, center_end, 0.0, 1.0, 0.2, material,
@@ -93,7 +98,7 @@ fn random_scene() -> impl Hit {
     let material1 = Dielectric::new(1.5);
     world.push(Sphere::new(Point::new(0.0, 1.0, 0.0), 1.0, material1));
 
-    let material2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
+    let material2 = Lambertian::from_color(Color::new(0.4, 0.2, 0.1));
     world.push(Sphere::new(Point::new(-4.0, 1.0, 0.0), 1.0, material2));
 
     let material3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);

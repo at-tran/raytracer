@@ -4,6 +4,7 @@ use crate::material::Material;
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
+use std::f64::consts::PI;
 
 pub struct Sphere {
     center_start: Point,
@@ -49,6 +50,13 @@ impl Sphere {
             + ((time - self.time_start) / (self.time_end - self.time_start))
                 * (self.center_end - self.center_start)
     }
+
+    fn get_sphere_uv(p: &Point) -> (f64, f64) {
+        let phi = f64::atan2(-p.0[2], p.0[0]) + PI;
+        let theta = f64::acos(-p.0[1]);
+
+        (phi / (2.0 * PI), theta / PI)
+    }
 }
 
 impl Hit for Sphere {
@@ -64,11 +72,15 @@ impl Hit for Sphere {
         let sqrtd = f64::sqrt(discriminant);
         let root =
             get_first_in_range([(-half_b - sqrtd) / a, (-half_b + sqrtd) / a], t_min, t_max)?;
+        let outward_normal = (r.at(root) - self.center(r.time())) / self.radius;
+        let (u, v) = Sphere::get_sphere_uv(&Point(outward_normal));
 
         Some(HitRecord::new(
             r,
-            (r.at(root) - self.center(r.time())) / self.radius,
+            outward_normal,
             root,
+            u,
+            v,
             self.mat.as_ref(),
         ))
     }
