@@ -11,11 +11,11 @@ pub struct Sphere {
     time_start: f64,
     time_end: f64,
     radius: f64,
-    mat: Box<dyn Material + Sync>,
+    mat: Box<dyn Material + Sync + Send>,
 }
 
 impl Sphere {
-    pub fn new(center: Point, radius: f64, mat: impl Material + Sync + 'static) -> Sphere {
+    pub fn new(center: Point, radius: f64, mat: impl Material + Sync + Send + 'static) -> Sphere {
         Sphere {
             center_start: center,
             center_end: center,
@@ -32,7 +32,7 @@ impl Sphere {
         time_start: f64,
         time_end: f64,
         radius: f64,
-        mat: impl Material + Sync + 'static,
+        mat: impl Material + Sync + Send + 'static,
     ) -> Sphere {
         Sphere {
             center_start,

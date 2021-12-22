@@ -3,8 +3,8 @@ use crate::ray::Ray;
 
 #[derive(Clone)]
 pub struct AABB {
-    minimum: Point,
-    maximum: Point,
+    pub minimum: Point,
+    pub maximum: Point,
 }
 
 impl AABB {

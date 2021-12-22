@@ -1,7 +1,7 @@
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::hit::{Hit, HitList};
-use crate::material::{Dielectric, Lambertian, Material, Metal};
+use crate::material::{Dielectric, Lambertian, Metal};
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::sphere::Sphere;

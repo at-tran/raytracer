@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use crate::aabb::AABB;
 use crate::material::Material;
 use crate::point::Point;
@@ -41,7 +42,7 @@ impl HitRecord<'_> {
 }
 
 pub struct HitList {
-    pub objects: Vec<Box<dyn Hit + Sync>>,
+    pub objects: Vec<Arc<dyn Hit + Sync + Send>>,
 }
 
 impl HitList {
@@ -51,8 +52,8 @@ impl HitList {
         }
     }
 
-    pub fn push(&mut self, object: impl Hit + Sync + 'static) {
-        self.objects.push(Box::new(object));
+    pub fn push(&mut self, object: impl Hit + Sync + Send + 'static) {
+        self.objects.push(Arc::new(object));
     }
 
     pub fn clear(&mut self) {
