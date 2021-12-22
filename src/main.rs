@@ -8,6 +8,7 @@ use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 use rand::Rng;
 use rayon::prelude::*;
+use crate::bvh::BVHNode;
 
 mod aabb;
 mod bvh;
@@ -37,7 +38,7 @@ fn ray_color<T: Hit>(r: &Ray, world: &T, depth: i32) -> Color {
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
-fn random_scene() -> HitList {
+fn random_scene() -> impl Hit {
     let mut world = HitList::new();
 
     let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
@@ -98,7 +99,7 @@ fn random_scene() -> HitList {
     let material3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
     world.push(Sphere::new(Point::new(4.0, 1.0, 0.0), 1.0, material3));
 
-    world
+    BVHNode::new(&world, 0.0, 1.0)
 }
 
 fn main() {

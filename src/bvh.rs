@@ -53,8 +53,8 @@ impl BVHNode {
                     left = objects[start].clone();
                     right = objects[start + 1].clone();
                 } else {
-                    left = objects[start].clone();
-                    right = objects[start + 1].clone();
+                    left = objects[start + 1].clone();
+                    right = objects[start].clone();
                 }
             }
             _ => {
