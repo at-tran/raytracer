@@ -6,7 +6,7 @@ use crate::material::{Dielectric, Lambertian, Metal};
 use crate::point::Point;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
-use crate::texture::CheckerTexture;
+use crate::texture::{CheckerTexture, NoiseTexture};
 use crate::vec3::Vec3;
 use rand::Rng;
 use rayon::prelude::*;
@@ -17,6 +17,7 @@ mod camera;
 mod color;
 mod hit;
 mod material;
+mod perlin;
 mod point;
 mod ray;
 mod sphere;
@@ -126,6 +127,24 @@ fn two_spheres() -> BVHNode {
     BVHNode::new(&objects, 0.0, 1.0)
 }
 
+fn two_perlin_spheres() -> BVHNode {
+    let mut objects = HitList::new();
+
+    let perlin_texture = NoiseTexture::new();
+    objects.push(Sphere::new(
+        Point::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Lambertian::new(perlin_texture.clone()),
+    ));
+    objects.push(Sphere::new(
+        Point::new(0.0, 2.0, 0.0),
+        2.0,
+        Lambertian::new(perlin_texture),
+    ));
+
+    BVHNode::new(&objects, 0.0, 1.0)
+}
+
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
@@ -147,8 +166,14 @@ fn main() {
             vfov = 20.0;
             aperture = 0.1;
         }
-        2 | _ => {
+        2 => {
             world = two_spheres();
+            lookfrom = Point::new(13.0, 2.0, 3.0);
+            lookat = Point::new(0.0, 0.0, 0.0);
+            vfov = 20.0;
+        }
+        3 | _ => {
+            world = two_perlin_spheres();
             lookfrom = Point::new(13.0, 2.0, 3.0);
             lookat = Point::new(0.0, 0.0, 0.0);
             vfov = 20.0;

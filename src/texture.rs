@@ -1,6 +1,7 @@
-use std::sync::Arc;
 use crate::color::Color;
+use crate::perlin::Perlin;
 use crate::point::Point;
+use std::sync::Arc;
 
 pub trait Texture {
     fn value(&self, u: f64, v: f64, p: &Point) -> Color;
@@ -61,5 +62,24 @@ impl Texture for CheckerTexture {
         } else {
             self.even.value(u, v, p)
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct NoiseTexture {
+    noise: Perlin,
+}
+
+impl NoiseTexture {
+    pub fn new() -> NoiseTexture {
+        NoiseTexture {
+            noise: Perlin::new(),
+        }
+    }
+}
+
+impl Texture for NoiseTexture {
+    fn value(&self, _u: f64, _v: f64, p: &Point) -> Color {
+        self.noise.noise(p) * Color::new(1.0, 1.0, 1.0)
     }
 }
